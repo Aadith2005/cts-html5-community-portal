@@ -300,3 +300,44 @@
         document.getElementById('charCount').style.color = "#7f8c8d";
     }
 </script>
+<style>
+    .video-container {
+        margin: 40px 0;
+        text-align: center;
+    }
+    #eventVideo {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    #videoStatus {
+        margin-top: 15px;
+        font-style: italic;
+        color: #3498db;
+        font-size: 1.1em;
+    }
+</style>
+
+<div class="video-container">
+    <h2>Upcoming Event Preview</h2>
+    <video id="eventVideo" width="800" controls
+           oncanplay="videoReady()"
+           onbeforeunload="return warnUnfinishedForm()">
+        <source src="videos/event-promo.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    <div id="videoStatus">Loading video, please wait...</div>
+</div>
+
+<script>
+    function videoReady() {
+        document.getElementById('videoStatus').textContent = "Video is ready to play! Click the play button above.";
+    }
+    
+    function warnUnfinishedForm() {
+        const feedbackForm = document.getElementById('eventFeedback');
+        if (feedbackForm && document.getElementById('feedback').value) {
+            return "You have unsaved feedback. Are you sure you want to leave?";
+        }
+    }
+</script>
