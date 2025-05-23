@@ -341,3 +341,349 @@
         }
     }
 </script>
+<style>
+    .preferences {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .pref-message {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+    }
+    .success-message {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .info-message {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    #clearPrefs {
+        background-color: #e74c3c;
+    }
+    #clearPrefs:hover {
+        background-color: #c0392b;
+    }
+</style>
+
+<div class="preferences">
+    <h2>Your Preferences</h2>
+    <div class="form-group">
+        <label for="preferredEvent">Preferred Event Type</label>
+        <select id="preferredEvent" class="form-control" onchange="savePreference()">
+            <option value="">-- Select your preference --</option>
+            <option value="festival">Festivals</option>
+            <option value="workshop">Workshops</option>
+            <option value="cleanup">Cleanups</option>
+            <option value="sports">Sports Events</option>
+        </select>
+    </div>
+    
+    <button id="clearPrefs" class="btn" onclick="clearPreferences()">Clear All Preferences</button>
+    
+    <div id="prefMessage" class="pref-message"></div>
+</div>
+
+<script>
+    // Load saved preference when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const preferredEvent = localStorage.getItem('preferredEvent');
+        if (preferredEvent) {
+            document.getElementById('preferredEvent').value = preferredEvent;
+            showMessage(`Welcome back! We've loaded your preferred event type: ${getEventName(preferredEvent)}`, 'success');
+        }
+    });
+    
+    function savePreference() {
+        const select = document.getElementById('preferredEvent');
+        const selectedEvent = select.value;
+        
+        if (selectedEvent) {
+            localStorage.setItem('preferredEvent', selectedEvent);
+            showMessage(`Preference saved! You prefer ${getEventName(selectedEvent)} events.`, 'success');
+        } else {
+            showMessage("Please select an event type to save your preference", 'info');
+        }
+    }
+    
+    function clearPreferences() {
+        localStorage.removeItem('preferredEvent');
+        document.getElementById('preferredEvent').value = '';
+        showMessage("All preferences have been cleared.", 'success');
+    }
+    
+    function getEventName(value) {
+        const options = {
+            'festival': 'Festival',
+            'workshop': 'Workshop',
+            'cleanup': 'Cleanup',
+            'sports': 'Sports'
+        };
+        return options[value] || 'Event';
+    }
+    
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('prefMessage');
+        messageDiv.textContent = text;
+        messageDiv.className = `pref-message ${type}-message`;
+        messageDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+</script>
+<!-- Add this to the head section -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    .geolocation {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #locationInfo {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 4px;
+        background-color: #e8f5e9;
+    }
+    .location-error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    #map {
+        height: 400px;
+        margin-top: 20px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    .event-marker {
+        background-color: #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+    .user-marker {
+        background-color: #e74c3c;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+    .event-popup {
+        font-family: Arial, sans-serif;
+    }
+    .event-popup h3 {
+        margin-top: 0;
+        color: #2c3e50;
+    }
+    .event-popup .register-btn {
+        display: inline-block;
+        background-color: #27ae60;
+        color: white;
+        padding: 5px 10px;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="geolocation">
+    <h2>Find Events Near You</h2>
+    <button class="btn" onclick="findNearbyEvents()">
+        <span id="locationIcon">📍</span> Find Nearby Events
+    </button>
+    
+    <div id="locationInfo">
+        <p>Click the button above to find events near your location.</p>
+    </div>
+    
+    <div id="map"></div>
+</div>
+
+<script>
+    let map;
+    let userMarker;
+    let eventMarkers = [];
+    
+    // Sample event data (in a real app, this would come from an API)
+    const sampleEvents = [
+        {
+            id: 1,
+            name: "Community Summer Festival",
+            type: "festival",
+            date: "2023-07-15",
+            time: "10:00 AM - 8:00 PM",
+            location: "Central Park",
+            lat: 40.7828,
+            lng: -73.9653,
+            description: "Annual summer festival with food, music, and activities for all ages."
+        },
+        {
+            id: 2,
+            name: "Neighborhood Cleanup",
+            type: "cleanup",
+            date: "2023-07-22",
+            time: "9:00 AM - 12:00 PM",
+            location: "Main Street Area",
+            lat: 40.7855,
+            lng: -73.9552,
+            description: "Help keep our neighborhood clean! Gloves and bags provided."
+        },
+        {
+            id: 3,
+            name: "Gardening Workshop",
+            type: "workshop",
+            date: "2023-07-29",
+            time: "2:00 PM - 4:00 PM",
+            location: "Community Garden",
+            lat: 40.7792,
+            lng: -73.9628,
+            description: "Learn urban gardening techniques from local experts."
+        }
+    ];
+
+    function findNearbyEvents() {
+        const locationInfo = document.getElementById('locationInfo');
+        locationInfo.innerHTML = "<p>Locating your position...</p>";
+        locationInfo.className = "";
+        
+        if (!navigator.geolocation) {
+            locationInfo.innerHTML = '<p class="location-error">Geolocation is not supported by your browser</p>';
+            return;
+        }
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                
+                locationInfo.innerHTML = `
+                    <p>📍 Found your location!</p>
+                    <p>Showing events within 2 miles of your position.</p>
+                `;
+                
+                // Initialize map if not already done
+                if (!map) {
+                    initMap(userLat, userLng);
+                } else {
+                    map.setView([userLat, userLng], 15);
+                }
+                
+                // Update user marker
+                if (userMarker) {
+                    userMarker.setLatLng([userLat, userLng]);
+                } else {
+                    userMarker = L.marker([userLat, userLng], {
+                        icon: L.divIcon({
+                            className: 'user-marker-icon',
+                            html: '<div class="user-marker"></div>',
+                            iconSize: [20, 20]
+                        })
+                    }).addTo(map);
+                    userMarker.bindPopup("<b>Your Location</b>").openPopup();
+                }
+                
+                // Clear previous event markers
+                eventMarkers.forEach(marker => map.removeLayer(marker));
+                eventMarkers = [];
+                
+                // Add nearby events to map
+                sampleEvents.forEach(event => {
+                    const distance = calculateDistance(
+                        userLat, userLng, 
+                        event.lat, event.lng
+                    );
+                    
+                    // Only show events within 2 miles (adjust as needed)
+                    if (distance <= 2) {
+                        const marker = L.marker([event.lat, event.lng], {
+                            icon: L.divIcon({
+                                className: 'event-marker-icon',
+                                html: '<div class="event-marker"></div>',
+                                iconSize: [20, 20]
+                            })
+                        }).addTo(map);
+                        
+                        const popupContent = `
+                            <div class="event-popup">
+                                <h3>${event.name}</h3>
+                                <p><strong>When:</strong> ${event.date} at ${event.time}</p>
+                                <p><strong>Where:</strong> ${event.location}</p>
+                                <p>${event.description}</p>
+                                <p><strong>Distance:</strong> ${distance.toFixed(1)} miles</p>
+                                <a href="#events" class="register-btn">Register</a>
+                            </div>
+                        `;
+                        
+                        marker.bindPopup(popupContent);
+                        eventMarkers.push(marker);
+                    }
+                });
+                
+                // If no events found
+                if (eventMarkers.length === 0) {
+                    locationInfo.innerHTML += '<p>No events found nearby. Check our full event list above.</p>';
+                }
+            },
+            function(error) {
+                let message = "Error getting your location: ";
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        message += "You denied the request for geolocation.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message += "Location information is unavailable.";
+                        break;
+                    case error.TIMEOUT:
+                        message += "The request to get your location timed out.";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        message += "An unknown error occurred.";
+                        break;
+                }
+                locationInfo.innerHTML = `<p class="location-error">${message}</p>`;
+            },
+            options
+        );
+    }
+    
+    function initMap(lat, lng) {
+        map = L.map('map').setView([lat, lng], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    }
+    
+    // Calculate distance between two coordinates in miles
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 3958.8; // Radius of the Earth in miles
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+</script>
