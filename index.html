@@ -341,3 +341,101 @@
         }
     }
 </script>
+<style>
+    .preferences {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 25px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .pref-message {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+    }
+    .success-message {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .info-message {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+    #clearPrefs {
+        background-color: #e74c3c;
+    }
+    #clearPrefs:hover {
+        background-color: #c0392b;
+    }
+</style>
+
+<div class="preferences">
+    <h2>Your Preferences</h2>
+    <div class="form-group">
+        <label for="preferredEvent">Preferred Event Type</label>
+        <select id="preferredEvent" class="form-control" onchange="savePreference()">
+            <option value="">-- Select your preference --</option>
+            <option value="festival">Festivals</option>
+            <option value="workshop">Workshops</option>
+            <option value="cleanup">Cleanups</option>
+            <option value="sports">Sports Events</option>
+        </select>
+    </div>
+    
+    <button id="clearPrefs" class="btn" onclick="clearPreferences()">Clear All Preferences</button>
+    
+    <div id="prefMessage" class="pref-message"></div>
+</div>
+
+<script>
+    // Load saved preference when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const preferredEvent = localStorage.getItem('preferredEvent');
+        if (preferredEvent) {
+            document.getElementById('preferredEvent').value = preferredEvent;
+            showMessage(`Welcome back! We've loaded your preferred event type: ${getEventName(preferredEvent)}`, 'success');
+        }
+    });
+    
+    function savePreference() {
+        const select = document.getElementById('preferredEvent');
+        const selectedEvent = select.value;
+        
+        if (selectedEvent) {
+            localStorage.setItem('preferredEvent', selectedEvent);
+            showMessage(`Preference saved! You prefer ${getEventName(selectedEvent)} events.`, 'success');
+        } else {
+            showMessage("Please select an event type to save your preference", 'info');
+        }
+    }
+    
+    function clearPreferences() {
+        localStorage.removeItem('preferredEvent');
+        document.getElementById('preferredEvent').value = '';
+        showMessage("All preferences have been cleared.", 'success');
+    }
+    
+    function getEventName(value) {
+        const options = {
+            'festival': 'Festival',
+            'workshop': 'Workshop',
+            'cleanup': 'Cleanup',
+            'sports': 'Sports'
+        };
+        return options[value] || 'Event';
+    }
+    
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('prefMessage');
+        messageDiv.textContent = text;
+        messageDiv.className = `pref-message ${type}-message`;
+        messageDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+</script>
