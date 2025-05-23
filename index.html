@@ -83,3 +83,220 @@
         </td>
     </tr>
 </table>
+<style>
+    .registration-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 25px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .form-control:focus {
+        border-color: #3498db;
+        outline: none;
+        box-shadow: 0 0 5px rgba(52,152,219,0.5);
+    }
+    .btn {
+        background-color: #27ae60;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+    .btn:hover {
+        background-color: #2ecc71;
+    }
+    #confirmation {
+        display: none;
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #d4edda;
+        color: #155724;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="registration-form">
+    <h2>Event Registration</h2>
+    <form id="eventRegistration">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" class="form-control" required autofocus placeholder="John Smith">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" class="form-control" required placeholder="john@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="eventDate">Event Date</label>
+            <input type="date" id="eventDate" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="eventType">Event Type</label>
+            <select id="eventType" class="form-control" required>
+                <option value="">-- Select an Event --</option>
+                <option value="festival">Community Festival</option>
+                <option value="workshop">Educational Workshop</option>
+                <option value="cleanup">Neighborhood Cleanup</option>
+                <option value="sports">Sports Tournament</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="message">Special Requirements</label>
+            <textarea id="message" class="form-control" rows="4" placeholder="Any accessibility needs or other requirements"></textarea>
+        </div>
+        
+        <button type="submit" class="btn">Register Now</button>
+        
+        <output id="confirmation"></output>
+    </form>
+</div>
+
+<script>
+    document.getElementById('eventRegistration').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const confirmation = document.getElementById('confirmation');
+        confirmation.textContent = `Thank you for registering, ${document.getElementById('name').value}! We've sent confirmation details to your email.`;
+        confirmation.style.display = 'block';
+        this.reset();
+    });
+</script>
+<style>
+    .feedback-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 25px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .char-counter {
+        text-align: right;
+        font-size: 0.9em;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+    .error {
+        border-color: #e74c3c !important;
+    }
+    .success {
+        border-color: #27ae60 !important;
+    }
+    #feeDisplay {
+        color: #27ae60;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+</style>
+
+<div class="feedback-form">
+    <h2>Event Feedback</h2>
+    <form id="eventFeedback">
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" class="form-control" placeholder="123-456-7890" onblur="validatePhone(this)">
+            <small>Format: 123-456-7890</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="eventFee">Event Fee</label>
+            <div style="display: flex; align-items: center;">
+                <select id="eventFee" class="form-control" onchange="displayFee(this)">
+                    <option value="">-- Select fee type --</option>
+                    <option value="free">Free Event</option>
+                    <option value="10">$10 Entry Fee</option>
+                    <option value="20">$20 Entry Fee</option>
+                </select>
+                <span id="feeDisplay"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="feedback">Your Feedback</label>
+            <textarea id="feedback" class="form-control" rows="6" 
+                      placeholder="Tell us about your experience..." 
+                      onkeyup="countChars(this)"></textarea>
+            <div id="charCount" class="char-counter">0/500 characters</div>
+        </div>
+        
+        <button type="button" class="btn" onclick="submitFeedback()">Submit Feedback</button>
+    </form>
+</div>
+
+<script>
+    function validatePhone(input) {
+        const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
+        if (input.value && !phoneRegex.test(input.value)) {
+            input.classList.add('error');
+            alert("Please enter a valid phone number in format: 123-456-7890");
+            input.focus();
+        } else if (input.value) {
+            input.classList.remove('error');
+            input.classList.add('success');
+        } else {
+            input.classList.remove('error', 'success');
+        }
+    }
+    
+    function displayFee(select) {
+        const feeDisplay = document.getElementById('feeDisplay');
+        if (select.value === 'free') {
+            feeDisplay.textContent = "This event was free";
+        } else if (select.value) {
+            feeDisplay.textContent = `Paid $${select.value} for this event`;
+        } else {
+            feeDisplay.textContent = "";
+        }
+    }
+    
+    function countChars(textarea) {
+        const charCount = document.getElementById('charCount');
+        charCount.textContent = `${textarea.value.length}/500 characters`;
+        
+        if (textarea.value.length > 400) {
+            charCount.style.color = '#e74c3c';
+        } else if (textarea.value.length > 300) {
+            charCount.style.color = '#f39c12';
+        } else {
+            charCount.style.color = '#7f8c8d';
+        }
+    }
+    
+    function submitFeedback() {
+        const feedback = document.getElementById('feedback').value;
+        if (feedback.length < 20) {
+            alert("Please provide more detailed feedback (at least 20 characters)");
+            return;
+        }
+        
+        alert("Thank you for your valuable feedback!");
+        document.getElementById('eventFeedback').reset();
+        document.getElementById('feeDisplay').textContent = "";
+        document.getElementById('charCount').textContent = "0/500 characters";
+        document.getElementById('charCount').style.color = "#7f8c8d";
+    }
+</script>
